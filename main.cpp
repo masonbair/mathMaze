@@ -29,6 +29,8 @@ int main(){
 
         maze<double> beginnerMatrix(x*y, x*y);
         calcProb(mouseMaze, beginnerMatrix);
-        std::cout << beginnerMatrix;
+        std::cout << beginnerMatrix << std::endl;
+        finalCalc(beginnerMatrix, mouseMaze.getTraps());
+        //RowReduce(beginnerMatrix);
     }
 }
