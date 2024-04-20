@@ -2,6 +2,7 @@
 #define MAZE_DEF
 
 #include <iostream>
+#include <type_traits>
 #include <cassert>
 
 //This is my attempt at the maze matrix problem. YOLO
@@ -13,23 +14,27 @@ public:
     maze(int mx, int my);
     //This constructor adds in traps
     maze(int mx, int my, int nTraps);
-
     void swap(const maze<T>&);
     maze<T>& operator=(const maze<T> rhs){ swap(rhs); return *this;};
-
     maze(const T&);
     ~maze();
 
+    int getX(){return xSize;}
+    int getY(){return ySize;}
+
     bool addTrap(int x, int y);
+    
     
     template <typename R>
     friend std::ostream& operator<<(std::ostream&, const maze<R>&);
+    friend void calcProb(maze<int>&, maze<double>&);
 
 private:
     int xSize;
     int ySize;
     T **holdMaze;
 };
+
 
 template <typename T>
 maze<T>::maze(){
@@ -46,10 +51,19 @@ maze<T>::maze(int mx, int my){
     for(int i = 0; i < ySize; ++i){
         holdMaze[i] = new T[xSize];
     }
-
-    for(int i = 0; i < ySize; ++i){
-        for(int j = 0; j < xSize; ++j){
-            holdMaze[i][j] = 0;
+    if constexpr (std::is_integral_v<T>) {  
+        int count = 0;
+        for(int i = 0; i < ySize; ++i){
+            for(int j = 0; j < xSize; ++j){
+                count++;
+                holdMaze[i][j] = count;
+            }
+        }
+    }else{
+        for(int i = 0; i < ySize; ++i){
+            for(int j = 0; j < xSize; ++j){
+                holdMaze[i][j] = 0;
+            }
         }
     }
 }
@@ -114,8 +128,8 @@ void maze<T>::swap(const maze<T>& rhs){
 
 template <typename T>
 bool maze<T>::addTrap(int x, int y){
-    if(holdMaze[y-1][x-1] != 1){
-        holdMaze[y-1][x-1] = 1;
+    if(holdMaze[y-1][x-1] > 0){
+        holdMaze[y-1][x-1] = holdMaze[y-1][x-1] * (-1);
         return true;
     }else{
         return false;
@@ -126,7 +140,13 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, const maze<T>& print){
     for(int i = 0; i < print.ySize; ++i){
         for(int j = 0; j < print.xSize; ++j){
-            os << print.holdMaze[i][j] << "|";
+            if(print.holdMaze[i][j] == 0){
+                os << "0.00" << "|";
+            }else if(print.holdMaze[i][j] == 0.5){
+                os << "0.50" << "|";
+            }else{
+                os << print.holdMaze[i][j] << "|";
+            }
         }
         os << std::endl;
     }
