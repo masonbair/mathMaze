@@ -33,7 +33,8 @@ public:
     friend void calcProb(maze<int>&, maze<double>&);
     friend void calcTraps(maze<int>& small, maze<double>& large);
     friend void finalCalc(maze<double>& large, int ntraps);
-    friend void RowReduce(maze<double>& A);
+    friend maze<double> forInverse(maze<double>& convert);
+    friend double matDet(maze<double>& welp);
 
 private:
     int nTraps;

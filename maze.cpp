@@ -100,43 +100,74 @@ void finalCalc(maze<double>& large, int ntraps){
             R.holdMaze[i][j] = large.holdMaze[large.xSize-ntraps+i][j];
         }
     }
-    
+    std::cout << "I" << std::endl;
     std::cout << I << std::endl;
+    std::cout << "Q" << std::endl;
     std::cout << Q << std::endl;
+    std::cout << "R" << std::endl;
     std::cout << R << std::endl;
 
-    RowReduce(Q);
+    maze<double> combo = forInverse(Q);
+    std::cout << Q << std::endl;
+    double det = matDet(combo);
+    std::cout << "This is the Det for Q: " << det;
     
 }
 
-void forInverse(maze<double>& convert){
-    
-}
-
-void RowReduce(maze<double>& A)
-{
-    const int nrows = A.xSize; // number of rows
-    const int ncols = A.ySize; // number of columns
-
-    int lead = 0; 
-
-    while (lead < nrows) {
-        float d, m;
-
-        for (int r = 0; r < nrows; r++) { // for each row ...
-            /* calculate divisor and multiplier */
-            d = A.holdMaze[lead][lead];
-            m = A.holdMaze[r][lead] / A.holdMaze[lead][lead];
-
-            for (int c = 0; c < ncols; c++) { // for each column ...
-                if (r == lead)
-                    A.holdMaze[r][c] /= d;               // make pivot = 1
-                else
-                    A.holdMaze[r][c] -= A.holdMaze[lead][c] * m;  // make other = 0
+maze<double> forInverse(maze<double>& convert){
+    maze<double> use(convert.xSize, convert.ySize);
+    for(int i = 0; i < use.xSize; ++i){
+        for(int j = 0; j < use.ySize; ++j){
+            if(i == j){
+                use.holdMaze[i][j] = 1;
+            }else{
+                use.holdMaze[i][j] = 0;
             }
         }
-
-        lead++;
-        std::cout << A << std::endl;
     }
+    for(int i = 0; i < use.xSize; ++i){
+        for(int j = 0; j < use.ySize; ++j){
+            convert.holdMaze[j][i] = use.holdMaze[j][i] - convert.holdMaze[j][i];
+        }
+    }
+    return convert;
+}
+
+double total = 0;
+
+double matDet(maze<double>& welp){
+    double working;
+    if(welp.xSize == 3){
+        std::cout << "Calculating 3x3 det" << std::endl;
+        total = total + 
+                (welp.holdMaze[0][0]*welp.holdMaze[1][1]*welp.holdMaze[2][2]) + 
+                (welp.holdMaze[0][1]*welp.holdMaze[1][2]*welp.holdMaze[2][0]) + 
+                (welp.holdMaze[0][2]*welp.holdMaze[1][0]*welp.holdMaze[2][1]) - 
+                (welp.holdMaze[2][0]*welp.holdMaze[1][1]*welp.holdMaze[0][2]) -
+                (welp.holdMaze[1][0]*welp.holdMaze[0][1]*welp.holdMaze[2][2]) -
+                (welp.holdMaze[0][0]*welp.holdMaze[2][1]*welp.holdMaze[1][2]);
+        std::cout << total << std::endl;
+    }else if(welp.xSize == 2){
+        total = (welp.holdMaze[0][0]*welp.holdMaze[1][1]) - (welp.holdMaze[0][1]*welp.holdMaze[1][0]);
+    }else if(welp.xSize == 1){
+        total = welp.holdMaze[0][0];
+    }else{
+        for(int i = 0; i < welp.xSize; ++i){
+            maze<double> decreased(welp.xSize-1, welp.xSize-1);
+            int count = 0;
+            for(int j = 0; j < decreased.xSize+1; ++j){
+                for(int w = 0; w < decreased.xSize; ++w){
+                    if(i != j){
+                        decreased.holdMaze[count/decreased.xSize][w] = welp.holdMaze[j][w+1];
+                        ++count;
+                    }
+                }
+            }
+            std::cout << "Created Det Matrix" << std::endl;
+            std::cout << decreased << std::endl;
+            total = total + matDet(decreased);
+        }
+    }
+    std::cout << "return total" << std::endl;
+    return total;
 }
