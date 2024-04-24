@@ -16,10 +16,12 @@ public:
     maze(int mx, int my);
     //This constructor adds in traps
     maze(int mx, int my, int nTraps);
-    void swap(const maze<T>&);
-    maze<T>& operator=(const maze<T> rhs){ swap(rhs); return *this;};
-    maze(const T&);
+    void swap(maze<T>&);
+    maze<T>& operator=(maze<T> rhs){ swap(rhs); return *this;};
+    maze( T&);
     ~maze();
+
+    bool operator==(maze<T> rhs);
 
     int getX(){return xSize;}
     int getY(){return ySize;}
@@ -33,8 +35,12 @@ public:
     friend void calcProb(maze<int>&, maze<double>&);
     friend void calcTraps(maze<int>& small, maze<double>& large);
     friend void finalCalc(maze<double>& large, int ntraps);
-    friend maze<double> forInverse(maze<double>& convert);
-    friend double matDet(maze<double>& welp);
+    friend maze<double> multiply(maze<double> lhs, maze<double> rhs);
+    friend double rowByCol(maze<double> lhs, maze<double> rhs, int, int);
+    friend maze<double> add(maze<double> lhs, maze<double> rhs);
+    //friend maze<double> forInverse(maze<double>& convert);
+    //friend double matDet(maze<double>& welp);
+    
 
 private:
     int nTraps;
@@ -97,7 +103,7 @@ maze<T>::maze(int mx, int my, int nTraps) : maze(mx, my){
 }
 
 template <typename T>
-maze<T>::maze(const T& copy){
+maze<T>::maze(T& copy){
     xSize = copy.xSize;
     ySize = copy.ySize;
     nTraps = copy.nTraps;
@@ -116,15 +122,20 @@ maze<T>::maze(const T& copy){
 
 template <typename T>
 maze<T>::~maze(){
-    for(int i = 0; i < ySize; ++i){
-        delete[] holdMaze[i];
+    if(!holdMaze){
+        for(int i = 0; i < ySize; ++i){
+            if(holdMaze[i]){
+                delete[] holdMaze[i];
+            }
+        }
+        delete[] holdMaze;
     }
-    delete[] holdMaze;
+    
 }
 
 template <typename T>
-void maze<T>::swap(const maze<T>& rhs){
-    T* tMaze = holdMaze;
+void maze<T>::swap(maze<T>& rhs){
+    T** tMaze = holdMaze;
     holdMaze = rhs.holdMaze;
     rhs.holdMaze = tMaze;
 
@@ -151,6 +162,21 @@ bool maze<T>::addTrap(int x, int y){
         return false;
     }
 }
+
+template <typename T>
+bool maze<T>::operator==(maze<T> rhs){
+    if(xSize != rhs.xSize) return false;
+    if(ySize != rhs.ySize) return false;
+    for(int i = 0; i < ySize; ++i){
+        for(int j = 0; j < xSize; ++j){
+            if(holdMaze[i][j] != rhs.holdMaze[i][j]){
+                return false;
+            }
+        }
+    }
+    return true;  
+}
+
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const maze<T>& print){

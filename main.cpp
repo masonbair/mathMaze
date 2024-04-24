@@ -10,7 +10,7 @@ int main(){
     int traps;
     while(running = true){
         std::cout << "-----------------------------------------------------------------------------------" << std::endl;
-        std::cout << "Calculating a Marcov model for the probability of a mouse in a maze would get stuck" << std::endl;
+        std::cout << "Calculating a Markov model for the probability of a mouse in a maze would get stuck" << std::endl;
         std::cout << "-----------------------------------------------------------------------------------" << std::endl;
         std::cout << std::endl;
 
