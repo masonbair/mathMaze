@@ -6,22 +6,20 @@
 #include <cassert>
 #include <cstdlib>
 #include <iomanip>
+#include <vector>
 
 //This is my attempt at the maze matrix problem. YOLO
-
-template <typename T>
 class maze{
 public:
     maze();
     maze(int mx, int my);
     //This constructor adds in traps
     maze(int mx, int my, int nTraps);
-    void swap(maze<T>&);
-    maze<T>& operator=(maze<T> rhs){ swap(rhs); return *this;};
-    maze( T&);
+    maze& operator=(maze rhs);
+    maze(maze&);
     ~maze();
 
-    bool operator==(maze<T> rhs);
+    bool operator==(maze rhs);
 
     int getX(){return xSize;}
     int getY(){return ySize;}
@@ -29,168 +27,19 @@ public:
 
     bool addTrap(int x, int y);
     
-    
-    template <typename R>
-    friend std::ostream& operator<<(std::ostream&, const maze<R>&);
-    friend void calcProb(maze<int>&, maze<double>&);
-    friend void calcTraps(maze<int>& small, maze<double>& large);
-    friend void finalCalc(maze<double>& large, int ntraps);
-    friend maze<double> multiply(maze<double> lhs, maze<double> rhs);
-    friend double rowByCol(maze<double> lhs, maze<double> rhs, int, int);
-    friend maze<double> add(maze<double> lhs, maze<double> rhs);
-    //friend maze<double> forInverse(maze<double>& convert);
-    //friend double matDet(maze<double>& welp);
-    
+    friend std::ostream& operator<<(std::ostream&, const maze&);
+    void calcProb(maze& rhs);
+    void calcTraps(maze& large);
+    maze finalCalc(int ntraps);
+    maze multiply(maze rhs);
+    double rowByCol(maze rhs, int, int);
+    maze add(maze rhs);    
 
 private:
     int nTraps;
     int xSize;
     int ySize;
-    T **holdMaze;
+    std::vector<std::vector<double>> holdMaze;
 };
-
-
-template <typename T>
-maze<T>::maze(){
-    xSize = 0;
-    ySize = 0;
-    nTraps = 0;
-    holdMaze = 0;
-}
-
-template <typename T>
-maze<T>::maze(int mx, int my){
-    ySize = my;
-    xSize = mx;
-    nTraps = 0;
-    holdMaze = new T*[ySize];
-    for(int i = 0; i < ySize; ++i){
-        holdMaze[i] = new T[xSize];
-    }
-    if constexpr (std::is_integral_v<T>) {  
-        int count = 0;
-        for(int i = 0; i < ySize; ++i){
-            for(int j = 0; j < xSize; ++j){
-                count++;
-                holdMaze[i][j] = count;
-            }
-        }
-    }else{
-        for(int i = 0; i < ySize; ++i){
-            for(int j = 0; j < xSize; ++j){
-                holdMaze[i][j] = 0;
-            }
-        }
-    }
-}
-
-template <typename T>
-maze<T>::maze(int mx, int my, int nTraps) : maze(mx, my){
-    int x;
-    int y;
-    for(int i = 0; i < nTraps; ++i){
-        do{
-            do{
-                std::cout << "Please enter a valid x location for trap " << (1+i) << " | with max size " << xSize << std::endl;
-                std::cin >> x;
-            }while(x > xSize && x <= 0);
-            do{
-                std::cout << "Please enter a valid y location for trap " << (1+i) << " | with max size " << ySize << std::endl;
-                std::cin >> y;
-            }while(y > ySize && y <= 0);
-        }while(!addTrap(x, y));
-    }
-}
-
-template <typename T>
-maze<T>::maze(T& copy){
-    xSize = copy.xSize;
-    ySize = copy.ySize;
-    nTraps = copy.nTraps;
-
-    holdMaze = new T*[ySize];
-    for(int i = 0; i < ySize; ++i){
-        holdMaze = new T[xSize];
-    }
-
-    for(int i = 0; i < ySize; ++i){
-        for(int j = 0; j < xSize; ++j){
-            holdMaze[ySize][xSize] = copy.holdMaze[ySize][xSize];
-        }
-    }
-}
-
-template <typename T>
-maze<T>::~maze(){
-    if(!holdMaze){
-        for(int i = 0; i < ySize; ++i){
-            if(holdMaze[i]){
-                delete[] holdMaze[i];
-            }
-        }
-        delete[] holdMaze;
-    }
-    
-}
-
-template <typename T>
-void maze<T>::swap(maze<T>& rhs){
-    T** tMaze = holdMaze;
-    holdMaze = rhs.holdMaze;
-    rhs.holdMaze = tMaze;
-
-    int xT = xSize;
-    xSize = rhs.xSize;
-    rhs.xSize = xT;
-
-    int yT = ySize;
-    ySize = rhs.ySize;
-    rhs.ySize = yT;
-
-    int nT = nTraps;
-    nTraps = rhs.nTraps;
-    rhs.nTraps = nT;
-}
-
-template <typename T>
-bool maze<T>::addTrap(int x, int y){
-    ++nTraps;
-    if(holdMaze[y-1][x-1] > 0){
-        holdMaze[y-1][x-1] = holdMaze[y-1][x-1] * (-1);
-        return true;
-    }else{
-        return false;
-    }
-}
-
-template <typename T>
-bool maze<T>::operator==(maze<T> rhs){
-    if(xSize != rhs.xSize) return false;
-    if(ySize != rhs.ySize) return false;
-    for(int i = 0; i < ySize; ++i){
-        for(int j = 0; j < xSize; ++j){
-            if(holdMaze[i][j] != rhs.holdMaze[i][j]){
-                return false;
-            }
-        }
-    }
-    return true;  
-}
-
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const maze<T>& print){
-    for (int i=0; i<print.ySize; i++) {
-            for (int j=0; j<print.xSize; j++) {
-                    os << std::setw(7) << std::setprecision(4) << print.holdMaze[i][j] << " ";
-            }
-            os << std::endl;
-    }
-    os << std::setw(7) << "----------------------------------------------" << std::endl;
-    os << std::endl;
-    return os;
-}
-
-
 
 #endif

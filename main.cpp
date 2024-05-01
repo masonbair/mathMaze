@@ -23,14 +23,14 @@ int main(){
         std::cin >> y;
         std::cout << "Please enter how many \"traps\" you would like: " << std::endl;
         std::cin >> traps;
-        maze<int> mouseMaze(x, y, traps);
+        maze mouseMaze(x, y, traps);
         std::cout << "Here is your mouse maze!" << std::endl;
         std::cout << mouseMaze;
 
-        maze<double> beginnerMatrix(x*y, x*y);
-        calcProb(mouseMaze, beginnerMatrix);
-        std::cout << beginnerMatrix << std::endl;
-        finalCalc(beginnerMatrix, mouseMaze.getTraps());
-        //RowReduce(beginnerMatrix);
+        maze beginnerMatrix(x*y, x*y);
+        mouseMaze.calcProb(beginnerMatrix);
+        //std::cout << beginnerMatrix << std::endl;
+        beginnerMatrix = beginnerMatrix.finalCalc(mouseMaze.getTraps());
+        //std::cout << beginnerMatrix << std::endl;
     }
 }

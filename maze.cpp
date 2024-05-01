@@ -5,75 +5,181 @@
 
 double total = 0;
 
-void calcProb(maze<int>& small, maze<double>& large){
+maze::maze(){
+    xSize = 0;
+    ySize = 0;
+    nTraps = 0;
+}
+
+maze::maze(int mx, int my){
+    ySize = my;
+    xSize = mx;
+    //std::cout << xSize << " | " << ySize << std::endl;
+    nTraps = 0;
+    for(int i = 0; i < ySize; ++i){
+        std::vector<double> vec;
+        for(int j = 0; j < xSize; ++j){
+            vec.push_back(0);
+        }
+        holdMaze.push_back(vec);
+    }
+}
+
+maze::maze(int mx, int my, int traps){
+    ySize = my;
+    xSize = mx;
+    nTraps = traps;
+    int x;
+    int y;
+    int count = 0;
+    for(int i = 0; i < ySize; ++i){
+        std::vector<double> vec;
+        for(int j = 0; j < xSize; ++j){
+            count++;
+            vec.push_back(count);
+        }
+        holdMaze.push_back(vec);
+    }
+    for(int i = 0; i < nTraps; ++i){
+        do{
+            do{
+                std::cout << "Please enter a valid x location for trap " << (1+i) << " | with max size " << xSize << std::endl;
+                std::cin >> x;
+            }while(x > xSize && x <= 0);
+            do{
+                std::cout << "Please enter a valid y location for trap " << (1+i) << " | with max size " << ySize << std::endl;
+                std::cin >> y;
+            }while(y > ySize && y <= 0);
+        }while(!addTrap(x, y));
+    }
+}
+
+maze::~maze(){
+}
+
+maze::maze(maze& copy){
+    xSize = copy.xSize;
+    ySize = copy.ySize;
+    nTraps = copy.nTraps;
+    for(std::vector<std::vector<double>>::const_iterator i = copy.holdMaze.begin(); i != copy.holdMaze.end(); ++i){
+        std::vector<double> vec;
+        for(std::vector<double>::const_iterator j = (*i).begin(); j != (*i).end(); ++j){
+            vec.push_back((*j));
+        }
+        holdMaze.push_back(vec);
+    }
+}
+
+maze& maze::operator=(maze rhs){ 
+    ySize = rhs.ySize;
+    xSize = rhs.xSize;
+    holdMaze = rhs.holdMaze;
+    return *this;
+}
+
+bool maze::operator==(maze rhs){
+    if(xSize != rhs.xSize) return false;
+    if(ySize != rhs.ySize) return false;
+    for(int i = 0; i < ySize; ++i){
+        for(int j = 0; j < xSize; ++j){
+            if(holdMaze[i][j] != rhs.holdMaze[i][j]){
+                return false;
+            }
+        }
+    }
+    return true;  
+}
+
+bool maze::addTrap(int x, int y){
+    if(holdMaze[y-1][x-1] > 0){
+        holdMaze[y-1][x-1] = holdMaze[y-1][x-1] * (-1);
+        return true;
+    }else{
+        return false;
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, const maze& print){
+    for (int i=0; i<print.ySize; i++) {
+            for (int j=0; j<print.xSize; j++) {
+                    os << std::setw(7) << std::setprecision(4) << print.holdMaze[i][j] << " ";
+            }
+            os << std::endl;
+    }
+    os << std::setw(7) << "----------------------------------------------" << std::endl;
+    os << std::endl;
+    return os;
+}
+
+void maze::calcProb(maze& large){
     double prob;
     double one, three;
     one = 1;
     three = 3;
    // std::cout << "Inside" << std::endl;
-    for(int i = 0; i < small.getX(); ++i){
-        for(int j = 0; j < small.getY(); ++j){
-            if(i == 0 || i == small.getX()-1){
-                if(j == 0 || j == small.getY() - 1){
+    for(int i = 0; i < xSize; ++i){
+        for(int j = 0; j < ySize; ++j){
+            if(i == 0 || i == xSize-1){
+                if(j == 0 || j == ySize-1){
                     prob = 0.50;
                 }else{
                     prob = one/three;
                 }
-            }else if(j == 0 || j == small.getY()-1){
+            }else if(j == 0 || j == ySize-1){
                 prob = one/three;
             }else{
                 prob = 0.25;
             }
-            //std::cout << abs(small.holdMaze[j][i])-1 << std::endl;
+            //std::cout << abs(holdMaze[j][i])-1 << std::endl;
 
             //std::cout << "X Stuff" << std::endl;
-            if ((i+1) % small.xSize != 1 && (i+1) % small.xSize != 0){
-                //std::cout << small.holdMaze[j][i] << std::endl;
-                large.holdMaze[abs(small.holdMaze[j][i+1])-1][abs(small.holdMaze[j][i])-1] = prob;
-                large.holdMaze[abs(small.holdMaze[j][i-1])-1][abs(small.holdMaze[j][i])-1] = prob;
-            }else if ((i+1) % small.xSize == 0){
-                //std::cout << small.holdMaze[j][i] << std::endl;
-                large.holdMaze[abs(small.holdMaze[j][i-1])-1][abs(small.holdMaze[j][i])-1] = prob;
-            }else if ((i+1) % small.xSize == 1){
-                //std::cout << small.holdMaze[j][i] << std::endl;
-                large.holdMaze[(abs(small.holdMaze[j][i+1])-1)][abs(small.holdMaze[j][i])-1] = prob;
+            if ((i+1) % xSize != 1 && (i+1) % xSize != 0){
+                //std::cout << holdMaze[j][i] << std::endl;
+                large.holdMaze[abs(holdMaze[j][i+1])-1][abs(holdMaze[j][i])-1] = prob;
+                large.holdMaze[abs(holdMaze[j][i-1])-1][abs(holdMaze[j][i])-1] = prob;
+            }else if ((i+1) % xSize == 0){
+                //std::cout << holdMaze[j][i] << std::endl;
+                large.holdMaze[abs(holdMaze[j][i-1])-1][abs(holdMaze[j][i])-1] = prob;
+            }else if ((i+1) % xSize == 1){
+                //std::cout << holdMaze[j][i] << std::endl;
+                large.holdMaze[(abs(holdMaze[j][i+1])-1)][abs(holdMaze[j][i])-1] = prob;
             }
             //std::cout << "Y stuff" << std::endl;
-            //std::cout << small.ySize << std::endl;
-            if (((j+1) % small.ySize != 1) && ((j+1) % small.ySize != 0)){
-                //std::cout << small.holdMaze[j][i] << " |22 " << j << "|" << i << std::endl;
-                large.holdMaze[abs(small.holdMaze[j+1][i])-1][abs(small.holdMaze[j][i])-1] = prob;
-                large.holdMaze[abs(small.holdMaze[j-1][i])-1][abs(small.holdMaze[j][i])-1] = prob;
-            }else if ((j+1) % small.ySize == 0){
-                //std::cout << small.holdMaze[j][i] << " |OO " << j << "|" << i << std::endl;
-                large.holdMaze[abs(small.holdMaze[j-1][i])-1][abs(small.holdMaze[j][i])-1] = prob;
-            }else if ((j+1) % small.ySize == 1){
-                //std::cout << small.holdMaze[j][i] << " |11 " << j << "|" << i << std::endl;
-                //std::cout << small.holdMaze[j][i] << std::endl;
-                large.holdMaze[abs(small.holdMaze[j+1][i])-1][abs(small.holdMaze[j][i])-1] = prob;
+            //std::cout << ySize << std::endl;
+            if (((j+1) % ySize != 1) && ((j+1) % ySize != 0)){
+                //std::cout << holdMaze[j][i] << " |22 " << j << "|" << i << std::endl;
+                large.holdMaze[abs(holdMaze[j+1][i])-1][abs(holdMaze[j][i])-1] = prob;
+                large.holdMaze[abs(holdMaze[j-1][i])-1][abs(holdMaze[j][i])-1] = prob;
+            }else if ((j+1) % ySize == 0){
+                //std::cout << holdMaze[j][i] << " |OO " << j << "|" << i << std::endl;
+                large.holdMaze[abs(holdMaze[j-1][i])-1][abs(holdMaze[j][i])-1] = prob;
+            }else if ((j+1) % ySize == 1){
+                //std::cout << holdMaze[j][i] << " |11 " << j << "|" << i << std::endl;
+                //std::cout << holdMaze[j][i] << std::endl;
+                large.holdMaze[abs(holdMaze[j+1][i])-1][abs(holdMaze[j][i])-1] = prob;
             }
-           //std::cout << abs(small.holdMaze[j][i])-1 << std::endl;
+           //std::cout << abs(holdMaze[j][i])-1 << std::endl;
             
         }
     }
-    calcTraps(small, large);
+    calcTraps(large);
 }
 
-void calcTraps(maze<int>& small, maze<double>& large){
-    //std::cout << "Calculating" << std::endl;
+void maze::calcTraps(maze& large){
+    //std::cout << "Calculating";
     //std::cout << small << std::endl;
-    for(int i = 0; i < small.ySize; ++i){
-        for(int j = 0; j < small.xSize; ++j){
-            if(small.holdMaze[i][j] < 0){
+    for(int i = 0; i < ySize; ++i){
+        for(int j = 0; j < xSize; ++j){
+            if(holdMaze[i][j] < 0){
                 //std::cout << "HELLO" << std::endl;
                 //std::cout << large.xSize << std::endl;
                 for(int w = 0; w < large.xSize; ++w){
-                    if(w == abs(small.holdMaze[i][j])-1){
+                    if(w == abs(holdMaze[i][j])-1){
                         //std::cout << "foudn it" << std::endl;
                         large.holdMaze[w][w] = 1;
                     }else{
                         //std::cout << "now 0" << std::endl;
-                        large.holdMaze[w][abs(small.holdMaze[i][j])-1] = 0;
+                        large.holdMaze[w][abs(holdMaze[i][j])-1] = 0;
                     }
                 }
             }
@@ -81,12 +187,14 @@ void calcTraps(maze<int>& small, maze<double>& large){
     }
 }
 
-void finalCalc(maze<double>& large, int ntraps){
+maze maze::finalCalc(int ntraps){
+    std::cout << "Calculating";
+    std::flush(std::cout);
     total = 0;
-    maze<double> I(ntraps, ntraps);
-    maze<double> Q(large.xSize - ntraps, large.xSize - ntraps);
-    maze<double> R(large.xSize - ntraps, ntraps);
-    std::cout << R << std::endl;
+    maze I(ntraps, ntraps);
+    maze Q(xSize - ntraps, xSize - ntraps);
+    maze R(xSize - ntraps, ntraps);
+    
     for(int i = 0; i < ntraps; ++i){
         for(int j = 0; j < ntraps; ++j){
             if(i == j){
@@ -96,26 +204,25 @@ void finalCalc(maze<double>& large, int ntraps){
             }
         }
     }
+    std::cout << ".";
+    std::flush(std::cout);
     for(int i = 0; i < Q.xSize; ++i){
         for(int j = 0; j < Q.xSize; ++j){
-            Q.holdMaze[i][j] = large.holdMaze[i][j];
+            Q.holdMaze[i][j] = holdMaze[i][j];
         }
     }
+    std::cout << ".";
+    std::flush(std::cout);
     for(int i = 0; i < R.ySize; ++i){
         for(int j = 0; j < R.xSize; ++j){
-            R.holdMaze[i][j] = large.holdMaze[large.xSize-ntraps+i][j];
+            R.holdMaze[i][j] = holdMaze[xSize-ntraps+i][j];
         }
     }
-    std::cout << "I" << std::endl;
-    std::cout << I << std::endl;
-    std::cout << "Q" << std::endl;
-    std::cout << Q << std::endl;
-    std::cout << "R" << std::endl;
-    std::cout << R << std::endl;
-
-    maze<double> sumMaze(Q.xSize, Q.xSize);
-    maze<double> multiMaze(Q.xSize, Q.xSize);
-    maze<double> oneMaze(Q.xSize, Q.xSize);
+    std::cout << ".";
+    std::flush(std::cout);
+    maze sumMaze(Q.xSize, Q.xSize);
+    maze multiMaze(Q.xSize, Q.xSize);
+    maze oneMaze(Q.xSize, Q.xSize);
     for(int i = 0; i < Q.xSize; ++i){
         for(int j = 0; j < Q.xSize; ++j){
             if(i == j){
@@ -125,48 +232,60 @@ void finalCalc(maze<double>& large, int ntraps){
     }
     int n = 0;
     do{
+        if(n%20 == 0){
+            std::cout << ".";
+            std::flush(std::cout);
+        } 
         multiMaze = Q;
         for(int i = 0; i < n; i++){
             if(n == 0) multiMaze = Q;
             else{
-                multiMaze = multiply(multiMaze, Q);
-                //std::cout << multiMaze << std::endl;
+                multiMaze = multiMaze.multiply(Q);
             } 
         }
-        //std::cout << multiMaze << std::endl;
-        sumMaze = add(sumMaze, multiMaze);
-        //std::cout << "SUM: " << sumMaze << std::endl;
-        //std::cout << sumMaze << std::endl;
+        sumMaze = sumMaze.add(multiMaze);
         ++n;
     }while(n < 200);
+    std::cout << ".";
+    std::flush(std::cout);
+    sumMaze = sumMaze.add(oneMaze);
 
-    sumMaze = add(sumMaze, oneMaze);
-    //std::cout << sumMaze << std::endl;
+    maze final = sumMaze.multiply(R);
+    std::cout << ". Finished" << std::endl;
 
-    maze<double> final = multiply(sumMaze, R);
+    //THis is the print out statements of the final results calculated from the program
+    std::cout << "Probability Matrix" << std::endl;
+    std::cout << *this << std::endl;
+    std::cout << "I" << std::endl;
+    std::cout << I << std::endl;
+    std::cout << "Q" << std::endl;
+    std::cout << Q << std::endl;
+    std::cout << "R" << std::endl;
+    std::cout << R << std::endl;
+    std::cout << "Probabilty of what trap the mouse will land in when starting in a specific position" << std::endl;
     std::cout << final << std::endl;
-    //maze<double> combo = forInverse(Q);
-    //std::cout << Q << std::endl;
-    //double det = matDet(combo);
-    //std::cout << "This is the Det for Q: " << det;
+    //----------------------------------------------------------------------------------
+
+    return final;
 }
 
-maze<double> multiply(maze<double> lhs, maze<double> rhs){
-    maze<double> calc(lhs.xSize, rhs.ySize);
+
+maze maze::multiply(maze rhs){
+    maze calc(xSize, rhs.ySize);
     for(int i = 0; i < rhs.ySize; ++i){
-        for(int j = 0; j < lhs.xSize; ++j){
+        for(int j = 0; j < xSize; ++j){
             
-            calc.holdMaze[i][j] = rowByCol(lhs, rhs, i, j);
+            calc.holdMaze[i][j] = rowByCol(rhs, i, j);
         }
     }
     return calc;
 }
 
-double rowByCol(maze<double> lhs, maze<double> rhs, int y, int x){
+double maze::rowByCol(maze rhs, int y, int x){
     double store = 0;
     double mult = 0;
-    for(int i = 0; i < lhs.xSize; ++i){
-        mult = lhs.holdMaze[i][x] * rhs.holdMaze[y][i];
+    for(int i = 0; i < xSize; ++i){
+        mult = holdMaze[i][x] * rhs.holdMaze[y][i];
         //std::cout << lhs.holdMaze[y][i] << " | " << mult << " | " << rhs.holdMaze[i][x] << std::endl;
         store = store + mult;
     }
@@ -174,81 +293,12 @@ double rowByCol(maze<double> lhs, maze<double> rhs, int y, int x){
     return store;
 }
 
-maze<double> add(maze<double> lhs, maze<double> rhs){
-    maze<double> addTo(lhs.xSize, lhs.ySize);
-    for(int i = 0; i < lhs.xSize; ++i){
-        for(int j = 0; j < lhs.ySize; ++j){
-            addTo.holdMaze[i][j] = lhs.holdMaze[i][j] + rhs.holdMaze[i][j];
+maze maze::add(maze rhs){
+    maze addTo(xSize, ySize);
+    for(int i = 0; i < xSize; ++i){
+        for(int j = 0; j < ySize; ++j){
+            addTo.holdMaze[i][j] = holdMaze[i][j] + rhs.holdMaze[i][j];
         }
     }
     return addTo;
 }
-
-/*
-maze<double> forInverse(maze<double>& convert){
-    maze<double> use(convert.xSize, convert.ySize);
-    for(int i = 0; i < use.xSize; ++i){
-        for(int j = 0; j < use.ySize; ++j){
-            if(i == j){
-                use.holdMaze[i][j] = 1;
-            }else
-                use.holdMaze[i][j] = 0;
-            }
-        }
-    }
-    for(int i = 0; i < use.xSize; ++i){
-        for(int j = 0; j < use.ySize; ++j){
-            convert.holdMaze[j][i] = use.holdMaze[j][i] - convert.holdMaze[j][i];
-        }
-    }
-    return convert;
-}
-*/
-
-/*
-double matDet(maze<double>& welp){
-    double working;
-    bool pos = true;
-    maze<double> decreased(welp.xSize-1, welp.xSize-1);
-    if(welp.xSize == 3){
-        std::cout << "Calculating 3x3 det" << std::endl;
-        int stitch = 1;
-        if(pos){
-            stitch = 1;
-            pos = false;
-        }else{
-            stitch = -1;
-            pos = true;
-        }
-        total = total + ((stitch) * 
-                (welp.holdMaze[0][0]*welp.holdMaze[1][1]*welp.holdMaze[2][2]) + 
-                (welp.holdMaze[0][1]*welp.holdMaze[1][2]*welp.holdMaze[2][0]) + 
-                (welp.holdMaze[0][2]*welp.holdMaze[1][0]*welp.holdMaze[2][1]) - 
-                (welp.holdMaze[2][0]*welp.holdMaze[1][1]*welp.holdMaze[0][2]) -
-                (welp.holdMaze[1][0]*welp.holdMaze[0][1]*welp.holdMaze[2][2]) -
-                (welp.holdMaze[0][0]*welp.holdMaze[2][1]*welp.holdMaze[1][2]));
-        std::cout << total << std::endl;
-    }else if(welp.xSize == 2){
-        total = (welp.holdMaze[0][0]*welp.holdMaze[1][1]) - (welp.holdMaze[0][1]*welp.holdMaze[1][0]);
-    }else if(welp.xSize == 1){
-        total = welp.holdMaze[0][0];
-    }else{
-        for(int i = 0; i < welp.xSize; ++i){
-            int count = 0;
-            for(int j = 0; j < decreased.xSize+1; ++j){
-                for(int w = 0; w < decreased.xSize; ++w){
-                    if(i != j){
-                        decreased.holdMaze[count/decreased.xSize][w] = welp.holdMaze[j][w+1];
-                        ++count;
-                    }
-                }
-            }
-            std::cout << "Created Det Matrix" << std::endl;
-            std::cout << decreased << std::endl;
-            (matDet(decreased));
-        }
-    }
-    std::cout << "return total" << std::endl;
-    return total;
-}
-*/
